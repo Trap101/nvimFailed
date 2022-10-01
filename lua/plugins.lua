@@ -14,6 +14,12 @@ return require("packer").startup(function(use)
 		end,
 	})
 	use({
+		"windwp/nvim-autopairs",
+		config = function()
+			require("nvim-autopairs").setup({ map_bs = false, map_cr = false })
+		end,
+	})
+	use({
 		"nvim-telescope/telescope.nvim",
 		tag = "0.1.0",
 		requires = { { "nvim-lua/plenary.nvim" } },

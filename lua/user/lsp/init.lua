@@ -1,6 +1,6 @@
 require 'user.lsp.settings'
 -- sumneko lua
-require'lspconfig'.sumneko_lua.setup {
+Settings = {
   settings = {
     Lua = {
       runtime = {

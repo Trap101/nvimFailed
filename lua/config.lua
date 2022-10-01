@@ -1,30 +1,19 @@
 require("user.options")
 local lsp_formatting = function(bufnr)
-    vim.lsp.buf.format({
-        filter = function(client)
-            -- apply whatever logic you want (in this example, we'll only use null-ls)
-            return client.name == "null-ls"
-        end,
-        bufnr = bufnr,
-    })
+	vim.lsp.buf.format({
+		filter = function(client)
+			-- apply whatever logic you want (in this example, we'll only use null-ls)
+			return client.name == "null-ls"
+		end,
+		bufnr = bufnr,
+	})
 end
 
 -- if you want to set up formatting on save, you can use this as a callback
 local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
 
 -- add to your shared on_attach callback
-local on_attach = function(client, bufnr)
-    if client.supports_method("textDocument/formatting") then
-        vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
-        vim.api.nvim_create_autocmd("BufWritePre", {
-            group = augroup,
-            buffer = bufnr,
-            callback = function()
-                lsp_formatting(bufnr)
-            end,
-        })
-    end
-	end
+
 local wilder = require("wilder")
 vim.g.coq_settings = {
 	auto_start = "shut-up",
@@ -87,7 +76,7 @@ wilder.set_option("pipeline", {
 			wilder.history(),
 		},
 		wilder.python_search_pipeline({
-		       	pattern = wilder.python_fuzzy_pattern({
+			pattern = wilder.python_fuzzy_pattern({
 				start_at_boundary = 0,
 			}),
 		})
@@ -115,35 +104,63 @@ wilder.set_option(
 	}))
 )
 local on_attach = function(client, bufnr)
-	
+	if client.supports_method("textDocument/formatting") then
+		vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
+		vim.api.nvim_create_autocmd("BufWritePre", {
+			group = augroup,
+			buffer = bufnr,
+			callback = function()
+				lsp_formatting(bufnr)
+			end,
+		})
+	end
+
 	local opts = { silent = true, noremap = true }
-	local keymap = vim.api.nvim_buf_set_keymap
-	keymap(bufnr, "n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", opts)
-	keymap(bufnr, "n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", opts)
-	keymap(bufnr, "n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
-	keymap(bufnr, "n", "gI", "<cmd>lua vim.lsp.buf.implementation()<CR>", opts)
-	keymap(bufnr, "n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts)
-	keymap(bufnr, "n", "gl", "<cmd>lua vim.diagnostic.open_float()<CR>", opts)
-	keymap(bufnr, "n", "<leader>lf", "<cmd>lua vim.lsp.buf.formatting()<cr>", opts)
-	keymap(bufnr, "n", "<leader>li", "<cmd>LspInfo<cr>", opts)
-	keymap(bufnr, "n", "<leader>lf", "<cmd>LspInstallInfo<cr>", opts)
-	keymap(bufnr, "n", "<leader>la", "<cmd>lua vim.lsp.buf.code_action()<cr>", opts)
-	keymap(bufnr, "n", "<leader>lj", "<cmd>lua vim.diagnostic.goto_next({buffer=0})<cr>", opts)
-	keymap(bufnr, "n", "<leader>lk", "<cmd>lua vim.diagnostic.goto_prev({buffer=0})<cr>", opts)
-	keymap(bufnr, "n", "<leader>lr", "<cmd>lua vim.lsp.buf.rename()<cr>", opts)
-	keymap(bufnr, "n", "<leader>ls", "<cmd>lua vim.lsp.buf.signature_help()<CR>", opts)
-	keymap(bufnr, "n", "<leader>lq", "<cmd>lua vim.diagnostic.setloclist()<CR>", opts)
+	local keymap = vim.api.nvim_set_keymap
+	keymap("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", opts)
+	keymap("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", opts)
+	keymap("n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
+	keymap("n", "gI", "<cmd>lua vim.lsp.buf.implementation()<CR>", opts)
+	keymap("n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts)
+	keymap("n", "gl", "<cmd>lua vim.diagnostic.open_float()<CR>", opts)
+	keymap("n", "<leader>lf", "<cmd>lua vim.lsp.buf.format()<CR>", opts)
+	keymap("n", "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<cr>", opts)
+	keymap("n", "<leader>lj", "<cmd>lua vim.diagnostic.goto_next({buffer=0})<cr>", opts)
+	keymap("n", "<leader>lk", "<cmd>lua vim.diagnostic.goto_prev({buffer=0})<cr>", opts)
+	keymap("n", "<leader>lr", "<cmd>lua vim.lsp.buf.rename()<cr>", opts)
+	keymap("n", "<leader>ls", "<cmd>lua vim.lsp.buf.signature_help()<CR>", opts)
+	keymap("n", "<leader>lq", "<cmd>lua vim.diagnostic.setloclist()<CR>", opts)
 end
+local capability = vim.lsp.protocol.make_client_capabilities()
 require("mason").setup()
-require("mason-lspconfig").setup()
 local lsp = require("lspconfig")
-lsp.sumneko_lua.setup({
+lsp["sumneko_lua"].setup(coq.lsp_ensure_capabilities({
 	on_attach = on_attach,
-})
-lsp.jedi_language_server.setup(coq.lsp_ensure_capabilities({
+	capabilities = capability,
+	settings = {
+		Lua = {
+			runtime = {
+				-- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
+				version = "LuaJIT",
+			},
+			diagnostics = {
+				globals = { "vim" },
+			},
+			workspace = {
+				library = {
+					library = vim.api.nvim_get_runtime_file("", true),
+					checkThirdParty = false,
+				},
+			},
+			telemetry = {
+				enable = false,
+			},
+		},
+	},
+}))
+lsp["pyright"].setup(coq.lsp_ensure_capabilities({
 	on_attach = on_attach,
 }))
-lsp.sumneko_lua.setup(coq.lsp_ensure_capabilities())
 lsp.rust_analyzer.setup(coq.lsp_ensure_capabilities({
 	on_attach = on_attach,
 }))
@@ -184,3 +201,19 @@ require("nvim-treesitter.configs").setup({
 		additional_vim_regex_highlighting = true,
 	},
 })
+local remap = vim.api.nvim_set_keymap
+local npairs = require("nvim-autopairs")
+_G.MUtils = {}
+
+MUtils.CR = function()
+	if vim.fn.pumvisible() ~= 0 then
+		if vim.fn.complete_info({ "selected" }).selected ~= -1 then
+			return npairs.esc("<c-y>")
+		else
+			return npairs.esc("<c-e>") .. npairs.autopairs_cr()
+		end
+	else
+		return npairs.autopairs_cr()
+	end
+end
+remap("i", "<C-r>", "v:lua.MUtils.CR()", { expr = true, noremap = true })

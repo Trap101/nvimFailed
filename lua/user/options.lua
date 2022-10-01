@@ -23,3 +23,21 @@ vim.opt.autoindent = true
 vim.opt.tabstop = 2
 vim.opt.shiftwidth = 2
 vim.cmd('colorscheme tokyonight-storm')
+local config = {
+    virtual_text = true, -- disable virtual text
+    signs = {
+      active = signs, -- show signs
+    },
+    update_in_insert = true,
+    underline = true,
+    severity_sort = true,
+    float = {
+      focusable = true,
+      style = "minimal",
+      border = "rounded",
+      source = "always",
+      header = "",
+      prefix = "",
+    },
+  }
+	vim.diagnostic.config(config)
