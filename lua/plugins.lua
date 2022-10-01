@@ -14,6 +14,13 @@ return require("packer").startup(function(use)
 		end,
 	})
 	use({
+		"numToStr/Comment.nvim",
+		config = function()
+			require("Comment").setup()
+		end,
+	})
+	use({ "CRAG666/code_runner.nvim", requires = "nvim-lua/plenary.nvim" })
+	use({
 		"windwp/nvim-autopairs",
 		config = function()
 			require("nvim-autopairs").setup({ map_bs = false, map_cr = false })
