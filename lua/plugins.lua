@@ -14,6 +14,23 @@ return require("packer").startup(function(use)
 		end,
 	})
 	use({
+		"yamatsum/nvim-cursorline",
+		config = function()
+			require("nvim-cursorline").setup({
+				cursorline = {
+					enable = true,
+					timeout = 1000,
+					number = true,
+				},
+				cursorword = {
+					enable = true,
+					min_length = 3,
+					hl = { underline = true },
+				},
+			})
+		end,
+	})
+	use({
 		"numToStr/Comment.nvim",
 		config = function()
 			require("Comment").setup()
