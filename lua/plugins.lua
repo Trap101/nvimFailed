@@ -14,6 +14,14 @@ return require("packer").startup(function(use)
 		end,
 	})
 	use({
+		"nvim-treesitter/nvim-treesitter-context",
+	})
+	use("RRethy/vim-illuminate")
+	use({
+		"phaazon/hop.nvim",
+		branch = "v2",
+	})
+	use({
 		"yamatsum/nvim-cursorline",
 		config = function()
 			require("nvim-cursorline").setup({
@@ -55,6 +63,7 @@ return require("packer").startup(function(use)
 			require("which-key").setup()
 		end,
 	})
+	use("simrat39/rust-tools.nvim")
 	use({
 		"goolord/alpha-nvim",
 		config = function()

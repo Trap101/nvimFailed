@@ -8,7 +8,6 @@ local lsp_formatting = function(bufnr)
 		bufnr = bufnr,
 	})
 end
-
 -- if you want to set up formatting on save, you can use this as a callback
 local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
 
@@ -119,7 +118,7 @@ local on_attach = function(client, bufnr)
 	local keymap = vim.api.nvim_set_keymap
 	keymap("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", opts)
 	keymap("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", opts)
-	keymap("n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
+	keymap("n", "<C-space>", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
 	keymap("n", "gI", "<cmd>lua vim.lsp.buf.implementation()<CR>", opts)
 	keymap("n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts)
 	keymap("n", "gl", "<cmd>lua vim.diagnostic.open_float()<CR>", opts)
@@ -161,10 +160,47 @@ lsp["sumneko_lua"].setup(coq.lsp_ensure_capabilities({
 lsp["pyright"].setup(coq.lsp_ensure_capabilities({
 	on_attach = on_attach,
 }))
-lsp.rust_analyzer.setup(coq.lsp_ensure_capabilities({
-	on_attach = on_attach,
-}))
+local rt = require("rust-tools")
+require("rust-tools").setup({
+	server = {
+		on_attach = function(_, bufnr)
+			if client.supports_method("textDocument/formatting") then
+				vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
+				vim.api.nvim_create_autocmd("BufWritePre", {
+					group = augroup,
+					buffer = bufnr,
+					callback = function()
+						lsp_formatting(bufnr)
+					end,
+				})
+			end
 
+			local opts = { silent = true, noremap = true }
+			local keymap = vim.api.nvim_set_keymap
+			keymap("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", opts)
+			keymap("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", opts)
+			keymap("n", "gI", "<cmd>lua vim.lsp.buf.implementation()<CR>", opts)
+			keymap("n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts)
+			keymap("n", "gl", "<cmd>lua vim.diagnostic.open_float()<CR>", opts)
+			keymap("n", "<leader>lf", "<cmd>lua vim.lsp.buf.format()<CR>", opts)
+			keymap("n", "<leader>lj", "<cmd>lua vim.diagnostic.goto_next({buffer=0})<cr>", opts)
+			keymap("n", "<leader>lk", "<cmd>lua vim.diagnostic.goto_prev({buffer=0})<cr>", opts)
+			keymap("n", "<leader>lr", "<cmd>lua vim.lsp.buf.rename()<cr>", opts)
+			keymap("n", "<leader>ls", "<cmd>lua vim.lsp.buf.signature_help()<CR>", opts)
+			keymap("n", "<leader>lq", "<cmd>lua vim.diagnostic.setloclist()<CR>", opts)
+			-- Code action groups
+			vim.keymap.set("n", "<Leader>ca", rt.code_action_group.code_action_group, { buffer = bufnr })
+			vim.keymap.set("n", "<C-space>", rt.hover_actions.hover_actions, { buffer = bufnr })
+			require("illuminate").on_attach(_)
+		end,
+		["rust-analyzer"] = {
+			checkOnSave = {
+				command = "clippy",
+			},
+		},
+	},
+})
+rt.inlay_hints.enable()
 require("coq_3p")({
 	{ src = "nvimlua", short_name = "nLUA", conf_only = false },
 })

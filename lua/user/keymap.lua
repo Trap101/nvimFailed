@@ -33,3 +33,8 @@ vim.keymap.set("n", "<leader>rp", ":RunProject<CR>", { noremap = true, silent = 
 vim.keymap.set("n", "<leader>rc", ":RunClose<CR>", { noremap = true, silent = false })
 vim.keymap.set("n", "<leader>crf", ":CRFiletype<CR>", { noremap = true, silent = false })
 vim.keymap.set("n", "<leader>crp", ":CRProjects<CR>", { noremap = true, silent = false })
+--hop
+keymap("n", "<C-s>c", ":HopChar2<CR>", opts)
+keymap("n", "<C-s>w", ":HopWord<CR>", opts)
+keymap("n", "<C-s>l", ":HopLine<CR>", opts)
+keymap("n", "<C-s>f", ":HopAnywhere<CR>", opts)
