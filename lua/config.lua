@@ -102,7 +102,9 @@ wilder.set_option(
 		reverse = 0, -- set to 1 to reverse the order of the list, use in combination with 'prompt_position'
 	}))
 )
+local rt = require("rust-tools")
 local on_attach = function(client, bufnr)
+	require("illuminate").on_attach(client)
 	if client.supports_method("textDocument/formatting") then
 		vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
 		vim.api.nvim_create_autocmd("BufWritePre", {
@@ -113,9 +115,24 @@ local on_attach = function(client, bufnr)
 			end,
 		})
 	end
-
+	if client.supports_method("textDocument/codeLens") then
+		vim.cmd([[autocmd BufEnter,InsertLeave * silent! lua vim.lsp.codelens.refresh()]])
+	end
 	local opts = { silent = true, noremap = true }
 	local keymap = vim.api.nvim_set_keymap
+	if client.name == "rust_analyzer" then
+		keymap("n", "<leader>r", "<cmd>RustRun<CR>", opts)
+		vim.keymap.set("n", "<Leader>ca", rt.code_action_group.code_action_group, { buffer = bufnr })
+		vim.keymap.set("n", "<C-space>", rt.hover_actions.hover_actions, { buffer = bufnr })
+	else
+		vim.keymap.set("n", "<leader>r", ":RunCode<CR>", { noremap = true, silent = false })
+		vim.keymap.set("n", "<leader>rf", ":RunFile<CR>", { noremap = true, silent = false })
+		vim.keymap.set("n", "<leader>rft", ":RunFile tab<CR>", { noremap = true, silent = false })
+		vim.keymap.set("n", "<leader>rp", ":RunProject<CR>", { noremap = true, silent = false })
+		vim.keymap.set("n", "<leader>rc", ":RunClose<CR>", { noremap = true, silent = false })
+		vim.keymap.set("n", "<leader>crf", ":CRFiletype<CR>", { noremap = true, silent = false })
+		vim.keymap.set("n", "<leader>crp", ":CRProjects<CR>", { noremap = true, silent = false })
+	end
 	keymap("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", opts)
 	keymap("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", opts)
 	keymap("n", "<C-space>", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
@@ -160,39 +177,10 @@ lsp["sumneko_lua"].setup(coq.lsp_ensure_capabilities({
 lsp["pyright"].setup(coq.lsp_ensure_capabilities({
 	on_attach = on_attach,
 }))
-local rt = require("rust-tools")
+
 require("rust-tools").setup({
 	server = {
-		on_attach = function(_, bufnr)
-			if client.supports_method("textDocument/formatting") then
-				vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
-				vim.api.nvim_create_autocmd("BufWritePre", {
-					group = augroup,
-					buffer = bufnr,
-					callback = function()
-						lsp_formatting(bufnr)
-					end,
-				})
-			end
-
-			local opts = { silent = true, noremap = true }
-			local keymap = vim.api.nvim_set_keymap
-			keymap("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", opts)
-			keymap("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", opts)
-			keymap("n", "gI", "<cmd>lua vim.lsp.buf.implementation()<CR>", opts)
-			keymap("n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts)
-			keymap("n", "gl", "<cmd>lua vim.diagnostic.open_float()<CR>", opts)
-			keymap("n", "<leader>lf", "<cmd>lua vim.lsp.buf.format()<CR>", opts)
-			keymap("n", "<leader>lj", "<cmd>lua vim.diagnostic.goto_next({buffer=0})<cr>", opts)
-			keymap("n", "<leader>lk", "<cmd>lua vim.diagnostic.goto_prev({buffer=0})<cr>", opts)
-			keymap("n", "<leader>lr", "<cmd>lua vim.lsp.buf.rename()<cr>", opts)
-			keymap("n", "<leader>ls", "<cmd>lua vim.lsp.buf.signature_help()<CR>", opts)
-			keymap("n", "<leader>lq", "<cmd>lua vim.diagnostic.setloclist()<CR>", opts)
-			-- Code action groups
-			vim.keymap.set("n", "<Leader>ca", rt.code_action_group.code_action_group, { buffer = bufnr })
-			vim.keymap.set("n", "<C-space>", rt.hover_actions.hover_actions, { buffer = bufnr })
-			require("illuminate").on_attach(_)
-		end,
+		on_attach = on_attach,
 		["rust-analyzer"] = {
 			checkOnSave = {
 				command = "clippy",
@@ -203,6 +191,14 @@ require("rust-tools").setup({
 rt.inlay_hints.enable()
 require("coq_3p")({
 	{ src = "nvimlua", short_name = "nLUA", conf_only = false },
+})
+require("telescope").setup({
+	extensions = {
+		fzy_native = {
+			override_generic_sorter = false,
+			override_file_sorter = true,
+		},
+	},
 })
 require("telescope").load_extension("fzy_native")
 require("nvim-treesitter.configs").setup({

@@ -26,13 +26,7 @@ keymap("n", "<S-q>", ":bdelete<CR>", opts)
 keymap("n", "<leader>e", ":CHADopen<CR>", opts)
 
 --codeRunner
-vim.keymap.set("n", "<leader>r", ":RunCode<CR>", { noremap = true, silent = false })
-vim.keymap.set("n", "<leader>rf", ":RunFile<CR>", { noremap = true, silent = false })
-vim.keymap.set("n", "<leader>rft", ":RunFile tab<CR>", { noremap = true, silent = false })
-vim.keymap.set("n", "<leader>rp", ":RunProject<CR>", { noremap = true, silent = false })
-vim.keymap.set("n", "<leader>rc", ":RunClose<CR>", { noremap = true, silent = false })
-vim.keymap.set("n", "<leader>crf", ":CRFiletype<CR>", { noremap = true, silent = false })
-vim.keymap.set("n", "<leader>crp", ":CRProjects<CR>", { noremap = true, silent = false })
+
 --hop
 keymap("n", "<C-s>c", ":HopChar2<CR>", opts)
 keymap("n", "<C-s>w", ":HopWord<CR>", opts)
