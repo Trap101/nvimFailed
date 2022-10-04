@@ -27,10 +27,10 @@ vim.cmd("colorscheme tokyonight-storm")
 vim.cmd("highlight CursorLineNr guifg=#CFBEF6")
 vim.cmd("highlight LineNr guifg=#9079c7")
 local config = {
-	virtual_text = true, -- disable virtual text
-	signs = {
-		active = signs, -- show signs
-	},
+	virtual_text = false, -- disable virtual text
+	-- signs = {
+	-- 	active = signs, -- show signs
+	-- },
 	update_in_insert = true,
 	underline = true,
 	severity_sort = true,

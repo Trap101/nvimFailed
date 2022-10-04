@@ -8,6 +8,12 @@ return require("packer").startup(function(use)
 	use("neovim/nvim-lspconfig")
 	use("gelguy/wilder.nvim")
 	use({
+		"https://git.sr.ht/~whynothugo/lsp_lines.nvim",
+		config = function()
+			require("lsp_lines").setup()
+		end,
+	})
+	use({
 		"nvim-treesitter/nvim-treesitter",
 		run = function()
 			require("nvim-treesitter.install").update({ with_sync = true })

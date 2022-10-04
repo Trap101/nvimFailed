@@ -121,7 +121,8 @@ local on_attach = function(client, bufnr)
 	local opts = { silent = true, noremap = true }
 	local keymap = vim.api.nvim_set_keymap
 	if client.name == "rust_analyzer" then
-		keymap("n", "<leader>r", "<cmd>RustRun<CR>", opts)
+		keymap("n", "<leader>r", "<cmd>RustRunnables<CR>", opts)
+		keymap("n", "<leader>cl", "<cmd>lua vim.lsp.codelens.run()<CR>", opts)
 		vim.keymap.set("n", "<Leader>ca", rt.code_action_group.code_action_group, { buffer = bufnr })
 		vim.keymap.set("n", "<C-space>", rt.hover_actions.hover_actions, { buffer = bufnr })
 	else
@@ -177,17 +178,42 @@ lsp["sumneko_lua"].setup(coq.lsp_ensure_capabilities({
 lsp["pyright"].setup(coq.lsp_ensure_capabilities({
 	on_attach = on_attach,
 }))
-
+lsp.taplo.setup({})
 require("rust-tools").setup({
+	tools = {
+		autoSetHints = true,
+		hover_with_actions = true,
+		inlay_hints = {
+			show_parameter_hints = true,
+			parameter_hints_prefix = "",
+			other_hints_prefix = "",
+		},
+	},
 	server = {
+		root_dir = lsp.util.root_pattern(".git"),
 		on_attach = on_attach,
 		["rust-analyzer"] = {
+			assist = {
+				importEnforceGranularity = true,
+				importPrefix = "crate",
+			},
+			cargo = {
+				allFeatures = true,
+			},
 			checkOnSave = {
+				-- default: `cargo check`
 				command = "clippy",
+			},
+		},
+		inlayHints = {
+			lifetimeElisionHints = {
+				enable = true,
+				useParameterNames = true,
 			},
 		},
 	},
 })
+
 rt.inlay_hints.enable()
 require("coq_3p")({
 	{ src = "nvimlua", short_name = "nLUA", conf_only = false },
